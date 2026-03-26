@@ -103,11 +103,16 @@
       </div>
 
       <button id="start-btn" disabled>ENTER &nbsp;→</button>
-      <div class="controls-hint">
+      <div class="controls-hint desktop-hint">
         <div class="hint-row"><kbd>W A S D</kbd><span>Walk</span></div>
         <div class="hint-row"><kbd>SPACE</kbd><span>Jump</span></div>
         <div class="hint-row"><kbd>MOUSE</kbd><span>Look Around</span></div>
         <div class="hint-row"><kbd>CLICK</kbd><span>Inspect Art</span></div>
+      </div>
+      <div class="controls-hint mobile-hint">
+        <div class="hint-row"><span class="hint-icon">◉</span><span>Left — Move</span></div>
+        <div class="hint-row"><span class="hint-icon">⟡</span><span>Right — Look</span></div>
+        <div class="hint-row"><span class="hint-icon">✦</span><span>Tap — Inspect</span></div>
       </div>
     </div>
   </div>
@@ -164,6 +169,19 @@
       </div>
       <button id="zoom-close">✕&nbsp; CLOSE</button>
     </div>
+  </div>
+
+  <!-- ── Touch UI (mobile only) ── -->
+  <div id="touch-ui" style="display:none">
+    <div id="touch-move-zone">
+      <div id="joystick-base">
+        <div id="joystick-knob"></div>
+      </div>
+    </div>
+    <div id="touch-look-zone">
+      <div id="touch-look-hint">SWIPE TO LOOK</div>
+    </div>
+    <button id="touch-inspect-btn" title="Inspect">✦</button>
   </div>
 
   <!-- ── Crosshair ── -->

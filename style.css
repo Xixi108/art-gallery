@@ -734,9 +734,126 @@ body.pointer-locked { cursor: none; }
 /* hidden helper (avoid conflicting with .hidden on zoom modal) */
 .t-hidden { display: none !important; }
 
+/* ════════════════════════════════════════════════════════
+   TOUCH CONTROLS (mobile)
+   ════════════════════════════════════════════════════════ */
+#touch-ui {
+  position: fixed; inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  display: flex !important; /* overridden by JS show/hide */
+}
+
+#touch-move-zone {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 44%;
+  pointer-events: all;
+  /* subtle left-zone indicator */
+  background: radial-gradient(ellipse at 30% 75%, rgba(0,200,238,0.04) 0%, transparent 60%);
+}
+
+#touch-look-zone {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 56%;
+  pointer-events: all;
+  background: radial-gradient(ellipse at 70% 75%, rgba(140,60,255,0.04) 0%, transparent 60%);
+}
+
+#touch-look-hint {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.5rem;
+  letter-spacing: 0.25em;
+  color: rgba(180,140,255,0.2);
+  text-transform: uppercase;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Joystick */
+#joystick-base {
+  position: absolute;
+  bottom: 90px; left: 50%;
+  transform: translateX(-50%);
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,200,238,0.3);
+  background: rgba(0,200,238,0.05);
+  box-shadow: 0 0 22px rgba(0,200,238,0.12);
+  pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+}
+
+#joystick-knob {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 38%, rgba(0,220,255,0.55), rgba(0,150,200,0.3));
+  border: 1px solid rgba(0,200,238,0.55);
+  box-shadow: 0 0 14px rgba(0,200,238,0.4);
+  pointer-events: none;
+  transition: transform 0.05s linear;
+}
+
+/* Inspect button — bottom center */
+#touch-inspect-btn {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: rgba(10,5,24,0.75);
+  border: 1px solid rgba(140,80,255,0.5);
+  color: var(--purple2);
+  font-size: 1.3rem;
+  cursor: pointer;
+  pointer-events: all;
+  box-shadow: 0 0 20px rgba(140,60,255,0.25);
+  backdrop-filter: blur(6px);
+  transition: background 0.2s, box-shadow 0.2s;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 62;
+}
+#touch-inspect-btn:active {
+  background: rgba(140,80,255,0.2);
+  box-shadow: 0 0 32px rgba(140,60,255,0.5);
+}
+
 /* ── Responsive ───────────────────────────────────────── */
 @media (max-width: 640px) {
+  /* Tarot */
   #tarot-scene { flex-direction: column; align-items: center; gap: 22px; }
   #tarot-img   { height: min(38vh, 260px); width: auto; }
   #tarot-panel { max-width: 100%; }
+
+  /* Overlay */
+  #overlay-inner { gap: 12px; padding: 16px; }
+  #portal { width: 280px; height: 280px; }
+  #overlay h1 { font-size: clamp(2.4rem, 14vw, 4rem); }
+  .desktop-hint { display: none; }
+  .mobile-hint  { display: flex !important; }
+
+  /* HUD */
+  #hud { padding-bottom: 160px; }
+  #hud-btns button { padding: 10px 14px; font-size: 0.58rem; }
+  #hud-tip { display: none; }
+
+  /* Zoom modal */
+  #zoom-img { max-width: 94vw; max-height: 50vh; }
+  #zoom-title { font-size: 1.2rem; }
+
+  /* Contact modal */
+  #contact-box { padding: 28px 20px 24px; width: 96vw; }
+  .contact-header h2 { font-size: 2.2rem; }
+  .c-footer-row { flex-direction: column; align-items: flex-start; gap: 14px; }
+
+  /* App modal */
+  #app-frame { width: 100vw; height: 75vh; border-radius: 0; }
 }
+
+/* Show mobile hint only on mobile, hide desktop hint on mobile */
+.mobile-hint { display: none; }
+.desktop-hint { display: flex; }
