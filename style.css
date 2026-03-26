@@ -251,7 +251,7 @@ kbd {
   display: none;
   flex-direction: column; align-items: center; gap: 10px;
   padding-bottom: 22px;
-  z-index: 50;
+  z-index: 70;          /* above touch-ui (60) so buttons stay clickable */
   pointer-events: none;
 }
 #hud-tip {
@@ -735,13 +735,14 @@ body.pointer-locked { cursor: none; }
 .t-hidden { display: none !important; }
 
 /* ════════════════════════════════════════════════════════
-   TOUCH CONTROLS (mobile)
+   TOUCH CONTROLS (mobile) — shown only by JS on mobile
    ════════════════════════════════════════════════════════ */
 #touch-ui {
   position: fixed; inset: 0;
+  bottom: 120px;          /* leave HUD area clear */
   z-index: 60;
   pointer-events: none;
-  display: flex !important; /* overridden by JS show/hide */
+  display: none;          /* JS sets display:flex when game starts on mobile */
 }
 
 #touch-move-zone {
@@ -749,14 +750,13 @@ body.pointer-locked { cursor: none; }
   left: 0; top: 0; bottom: 0;
   width: 44%;
   pointer-events: all;
-  /* subtle left-zone indicator */
   background: radial-gradient(ellipse at 30% 75%, rgba(0,200,238,0.04) 0%, transparent 60%);
 }
 
 #touch-look-zone {
   position: absolute;
   right: 0; top: 0; bottom: 0;
-  width: 56%;
+  left: 44%;
   pointer-events: all;
   background: radial-gradient(ellipse at 70% 75%, rgba(140,60,255,0.04) 0%, transparent 60%);
 }
@@ -767,18 +767,18 @@ body.pointer-locked { cursor: none; }
   transform: translate(-50%, -50%);
   font-size: 0.5rem;
   letter-spacing: 0.25em;
-  color: rgba(180,140,255,0.2);
+  color: rgba(180,140,255,0.18);
   text-transform: uppercase;
   pointer-events: none;
   white-space: nowrap;
 }
 
-/* Joystick */
+/* Joystick — sits inside move zone */
 #joystick-base {
   position: absolute;
-  bottom: 90px; left: 50%;
+  bottom: 20px; left: 50%;
   transform: translateX(-50%);
-  width: 100px; height: 100px;
+  width: 96px; height: 96px;
   border-radius: 50%;
   border: 1.5px solid rgba(0,200,238,0.3);
   background: rgba(0,200,238,0.05);
@@ -788,72 +788,96 @@ body.pointer-locked { cursor: none; }
 }
 
 #joystick-knob {
-  width: 40px; height: 40px;
+  width: 38px; height: 38px;
   border-radius: 50%;
-  background: radial-gradient(circle at 40% 38%, rgba(0,220,255,0.55), rgba(0,150,200,0.3));
-  border: 1px solid rgba(0,200,238,0.55);
+  background: radial-gradient(circle at 40% 38%, rgba(0,220,255,0.6), rgba(0,150,200,0.35));
+  border: 1px solid rgba(0,200,238,0.6);
   box-shadow: 0 0 14px rgba(0,200,238,0.4);
   pointer-events: none;
-  transition: transform 0.05s linear;
 }
 
-/* Inspect button — bottom center */
+/* Inspect button — bottom of look zone */
 #touch-inspect-btn {
   position: absolute;
-  bottom: 100px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 20px; right: 28px;
   width: 52px; height: 52px;
   border-radius: 50%;
-  background: rgba(10,5,24,0.75);
-  border: 1px solid rgba(140,80,255,0.5);
+  background: rgba(10,5,24,0.8);
+  border: 1px solid rgba(140,80,255,0.55);
   color: var(--purple2);
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   cursor: pointer;
   pointer-events: all;
-  box-shadow: 0 0 20px rgba(140,60,255,0.25);
+  box-shadow: 0 0 18px rgba(140,60,255,0.28);
   backdrop-filter: blur(6px);
   transition: background 0.2s, box-shadow 0.2s;
   display: flex; align-items: center; justify-content: center;
   z-index: 62;
 }
 #touch-inspect-btn:active {
-  background: rgba(140,80,255,0.2);
-  box-shadow: 0 0 32px rgba(140,60,255,0.5);
+  background: rgba(140,80,255,0.22);
+  box-shadow: 0 0 30px rgba(140,60,255,0.55);
 }
 
 /* ── Responsive ───────────────────────────────────────── */
+
+/* Always hide mobile hint on desktop */
+.mobile-hint  { display: none; }
+.desktop-hint { display: flex; flex-direction: column; gap: 8px; }
+
 @media (max-width: 640px) {
   /* Tarot */
-  #tarot-scene { flex-direction: column; align-items: center; gap: 22px; }
+  #tarot-scene { flex-direction: column; align-items: center; gap: 22px; padding: 16px; }
   #tarot-img   { height: min(38vh, 260px); width: auto; }
   #tarot-panel { max-width: 100%; }
 
-  /* Overlay */
-  #overlay-inner { gap: 12px; padding: 16px; }
-  #portal { width: 280px; height: 280px; }
-  #overlay h1 { font-size: clamp(2.4rem, 14vw, 4rem); }
+  /* Overlay — scrollable so nothing gets cut off */
+  #overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #overlay-inner {
+    gap: 10px;
+    padding: 24px 16px 32px;
+    width: 100%;
+    align-items: center;
+    margin: auto;
+  }
+  #portal { width: 260px; height: 260px; }
+  #overlay h1 { font-size: clamp(2.2rem, 13vw, 3.5rem); }
+  .gender-card { padding: 12px 18px 10px; }
+  .gender-svg  { width: 46px; height: 76px; }
   .desktop-hint { display: none; }
-  .mobile-hint  { display: flex !important; }
+  .mobile-hint  { display: flex; flex-direction: column; gap: 6px; }
+  .mobile-hint .hint-row { justify-content: center; gap: 10px; }
+  .hint-icon { font-size: 1rem; color: var(--cyan); }
 
   /* HUD */
-  #hud { padding-bottom: 160px; }
-  #hud-btns button { padding: 10px 14px; font-size: 0.58rem; }
+  #hud { padding-bottom: 18px; }
+  #hud-btns { gap: 6px; }
+  #hud-btns button { padding: 10px 12px; font-size: 0.56rem; gap: 5px; }
   #hud-tip { display: none; }
 
   /* Zoom modal */
-  #zoom-img { max-width: 94vw; max-height: 50vh; }
+  #zoom-content { max-width: 98vw; }
+  #zoom-img { max-width: 94vw; max-height: 52vh; }
   #zoom-title { font-size: 1.2rem; }
+  #zoom-close { padding: 9px 20px; }
 
   /* Contact modal */
-  #contact-box { padding: 28px 20px 24px; width: 96vw; }
-  .contact-header h2 { font-size: 2.2rem; }
+  #contact-modal { align-items: flex-end; }
+  #contact-box {
+    padding: 28px 20px 24px;
+    width: 100vw;
+    border-radius: 12px 12px 0 0;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .contact-header h2 { font-size: 2rem; }
   .c-footer-row { flex-direction: column; align-items: flex-start; gap: 14px; }
 
   /* App modal */
-  #app-frame { width: 100vw; height: 75vh; border-radius: 0; }
+  #app-frame { width: 100vw; height: 80vh; border-radius: 0; }
+  #app-modal-close { margin-top: 10px; }
 }
-
-/* Show mobile hint only on mobile, hide desktop hint on mobile */
-.mobile-hint { display: none; }
-.desktop-hint { display: flex; }

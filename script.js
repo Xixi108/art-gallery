@@ -1411,90 +1411,112 @@ canvas.addEventListener('click', () => {
    MOBILE TOUCH CONTROLS
    ═══════════════════════════════════════════════════════ */
 if (isMobile) {
-  const touchUI     = document.getElementById('touch-ui');
+  const touchUI      = document.getElementById('touch-ui');
+  const moveZone     = document.getElementById('touch-move-zone');
+  const lookZone     = document.getElementById('touch-look-zone');
   const joystickBase = document.getElementById('joystick-base');
   const joystickKnob = document.getElementById('joystick-knob');
 
-  function updateJoystickVisual(dx, dy) {
+  function updateJoystickKnob(dx, dy) {
     const dist  = Math.sqrt(dx * dx + dy * dy);
-    const clamp = Math.min(dist, JOYSTICK_R);
+    const r     = Math.min(dist, JOYSTICK_R);
     const angle = Math.atan2(dy, dx);
-    const nx = Math.cos(angle) * clamp;
-    const ny = Math.sin(angle) * clamp;
-    joystickKnob.style.transform = `translate(${nx}px, ${ny}px)`;
+    joystickKnob.style.transform =
+      `translate(${Math.cos(angle) * r}px, ${Math.sin(angle) * r}px)`;
   }
 
-  canvas.addEventListener('touchstart', e => {
+  function resetJoystick() {
+    joystickKnob.style.transform = 'none';
+    joystickBase.style.cssText =
+      'left:50%; bottom:20px; top:auto; transform:translateX(-50%)';
+  }
+
+  // ── Move zone (left half) ────────────────────────────
+  moveZone.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (moveTouchId !== null) return;
+    const t = e.changedTouches[0];
+    moveTouchId = t.identifier;
+    moveTouchOrigin = { x: t.clientX, y: t.clientY };
+    const rect = moveZone.getBoundingClientRect();
+    joystickBase.style.left      = (t.clientX - rect.left - 48) + 'px';
+    joystickBase.style.top       = (t.clientY - rect.top  - 48) + 'px';
+    joystickBase.style.bottom    = 'auto';
+    joystickBase.style.transform = 'none';
+    joystickKnob.style.transform = 'none';
+  }, { passive: false });
+
+  moveZone.addEventListener('touchmove', e => {
     e.preventDefault();
     Array.from(e.changedTouches).forEach(t => {
-      const isLeft = t.clientX < window.innerWidth * 0.44;
-      if (isLeft && moveTouchId === null) {
-        moveTouchId = t.identifier;
-        moveTouchOrigin = { x: t.clientX, y: t.clientY };
-        joystickBase.style.left = (t.clientX - joystickBase.offsetWidth / 2) + 'px';
-        joystickBase.style.bottom = '';
-        joystickBase.style.top    = (t.clientY - joystickBase.offsetHeight / 2) + 'px';
-        joystickBase.style.transform = 'none';
-        joystickKnob.style.transform = 'none';
-      } else if (!isLeft && lookTouchId === null) {
-        lookTouchId  = t.identifier;
-        lookTouchPrev = { x: t.clientX, y: t.clientY };
-      }
+      if (t.identifier !== moveTouchId) return;
+      const dx = t.clientX - moveTouchOrigin.x;
+      const dy = t.clientY - moveTouchOrigin.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const norm = Math.min(dist, JOYSTICK_R) / JOYSTICK_R;
+      touchMove.x = dist > 5 ? (dx / dist) * norm : 0;
+      touchMove.z = dist > 5 ? (dy / dist) * norm : 0;
+      updateJoystickKnob(dx, dy);
     });
   }, { passive: false });
 
-  canvas.addEventListener('touchmove', e => {
-    e.preventDefault();
+  moveZone.addEventListener('touchend', e => {
     Array.from(e.changedTouches).forEach(t => {
-      if (t.identifier === moveTouchId) {
-        const dx = t.clientX - moveTouchOrigin.x;
-        const dy = t.clientY - moveTouchOrigin.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const norm = Math.min(dist, JOYSTICK_R) / JOYSTICK_R;
-        touchMove.x = dist > 6 ? (dx / dist) * norm : 0;
-        touchMove.z = dist > 6 ? (dy / dist) * norm : 0;
-        updateJoystickVisual(dx, dy);
-      } else if (t.identifier === lookTouchId) {
-        touchLook.dx += t.clientX - lookTouchPrev.x;
-        touchLook.dy += t.clientY - lookTouchPrev.y;
-        lookTouchPrev = { x: t.clientX, y: t.clientY };
-      }
-    });
-  }, { passive: false });
-
-  canvas.addEventListener('touchend', e => {
-    Array.from(e.changedTouches).forEach(t => {
-      if (t.identifier === moveTouchId) {
-        moveTouchId = null;
-        touchMove.x = 0; touchMove.z = 0;
-        joystickKnob.style.transform = 'none';
-      } else if (t.identifier === lookTouchId) {
-        lookTouchId = null;
-      }
+      if (t.identifier !== moveTouchId) return;
+      moveTouchId = null;
+      touchMove.x = 0; touchMove.z = 0;
+      resetJoystick();
     });
   });
+  moveZone.addEventListener('touchcancel', () => {
+    moveTouchId = null; touchMove.x = 0; touchMove.z = 0; resetJoystick();
+  });
 
-  // Inspect button fires the raycast
-  document.getElementById('touch-inspect-btn').addEventListener('click', () => {
+  // ── Look zone (right half) ───────────────────────────
+  lookZone.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (lookTouchId !== null) return;
+    const t = e.changedTouches[0];
+    lookTouchId   = t.identifier;
+    lookTouchPrev = { x: t.clientX, y: t.clientY };
+  }, { passive: false });
+
+  lookZone.addEventListener('touchmove', e => {
+    e.preventDefault();
+    Array.from(e.changedTouches).forEach(t => {
+      if (t.identifier !== lookTouchId) return;
+      touchLook.dx += t.clientX - lookTouchPrev.x;
+      touchLook.dy += t.clientY - lookTouchPrev.y;
+      lookTouchPrev = { x: t.clientX, y: t.clientY };
+    });
+  }, { passive: false });
+
+  lookZone.addEventListener('touchend', e => {
+    Array.from(e.changedTouches).forEach(t => {
+      if (t.identifier === lookTouchId) lookTouchId = null;
+    });
+  });
+  lookZone.addEventListener('touchcancel', () => { lookTouchId = null; });
+
+  // ── Inspect button ───────────────────────────────────
+  document.getElementById('touch-inspect-btn').addEventListener('touchend', e => {
+    e.preventDefault();
     if (!gameStarted) return;
     raycaster.setFromCamera(center, camera);
     const hits = raycaster.intersectObjects(artObjects.map(a => a.mesh));
-    if (hits.length > 0) {
-      const found = artObjects.find(a => a.mesh === hits[0].object);
-      if (!found) return;
-      if (found.art.isContact)                          openContactModal();
-      else if (found.art.isApp)                         openAppModal();
-      else if (found.art.url.startsWith('archetype/cards/')) openTarot(found.art);
-      else                                              openZoom(found.art);
-    }
-  });
+    if (!hits.length) return;
+    const found = artObjects.find(a => a.mesh === hits[0].object);
+    if (!found) return;
+    if (found.art.isContact)                               openContactModal();
+    else if (found.art.isApp)                              openAppModal();
+    else if (found.art.url.startsWith('archetype/cards/')) openTarot(found.art);
+    else                                                   openZoom(found.art);
+  }, { passive: false });
 
-  // Show touch UI when game starts
-  const _origStartMobile = () => {
+  // Show touch UI when mobile game starts
+  document.addEventListener('_mobileGameStarted', () => {
     touchUI.style.display = 'flex';
-  };
-  // Hooked into startBtn below
-  document.addEventListener('_mobileGameStarted', _origStartMobile);
+  });
 }
 
 /* ═══════════════════════════════════════════════════════
