@@ -12,9 +12,9 @@ const player        = document.getElementById('player');
 const animeGirlEl   = document.querySelector('.anime-girl');
 
 const defaultTracks = [
-  { url: 'music/Avril Lavigne - Take Me Away.mp3',                             name: 'Take Me Away' },
-  { url: 'music/Avril Lavigne - My Happy Ending (Official Video - Clean).mp3', name: 'My Happy Ending' },
-  { url: 'music/Avril Lavigne - Don t Tell Me (Official Video).mp3',           name: "Don't Tell Me" },
+  { url: 'music/Avril%20Lavigne%20-%20Take%20Me%20Away.mp3',                                       name: 'Take Me Away' },
+  { url: 'music/Avril%20Lavigne%20-%20My%20Happy%20Ending%20(Official%20Video%20-%20Clean).mp3',   name: 'My Happy Ending' },
+  { url: "music/Avril%20Lavigne%20-%20Don%20t%20Tell%20Me%20(Official%20Video).mp3",               name: "Don't Tell Me" },
 ];
 
 let playlist     = [...defaultTracks];
@@ -75,9 +75,18 @@ function loadTrack(index, autoPlay = false) {
   resetProgress();
 
   if (autoPlay) {
-    audio.play().catch(() => {});
+    audio.play().catch(err => {
+      console.warn('Play blocked:', err);
+    });
   }
 }
+
+audio.addEventListener('error', () => {
+  const codes = ['', 'ABORTED', 'NETWORK', 'DECODE', 'SRC_NOT_SUPPORTED'];
+  const code = audio.error ? audio.error.code : 0;
+  console.error('Audio error:', codes[code] || code, audio.src);
+  updateTitle('⚠ Cannot load — click album to upload MP3');
+});
 
 // ---- Play / Pause ----
 
@@ -87,7 +96,7 @@ btnPlay.addEventListener('click', () => {
     return;
   }
   if (audio.paused) {
-    audio.play().catch(() => {});
+    audio.play().catch(err => console.warn('Play blocked:', err));
   } else {
     audio.pause();
   }
